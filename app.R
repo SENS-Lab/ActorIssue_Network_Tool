@@ -13,53 +13,53 @@ actorissueEdgelist <- read.csv(url("https://raw.githubusercontent.com/SENS-Lab/A
 issueissueEdgelist <- read.csv(url("https://raw.githubusercontent.com/SENS-Lab/ActorIssue_Network_Tool/main/ii_edgelist_weights.csv"), header=TRUE)
 actordescription <- read.csv(url("https://raw.githubusercontent.com/SENS-Lab/ActorIssue_Network_Tool/main/epn_actorattributes.csv"), header=TRUE)
 issuedescription <- read.csv(url("https://raw.githubusercontent.com/SENS-Lab/ActorIssue_Network_Tool/main/epn_issueattributes.csv"), header=TRUE)
-names(issuedescription) <- c('full_issue', 'abbr_issue', 'projects')
 
 # -Variables-
-uniqueOrganizations <- unique(unlist(actorissueEdgelist[1], use.names=FALSE)) # Length: 100
-uniquePolicies <- unique(unlist(actorissueEdgelist[2], use.names=FALSE)) # Length: 19
+uniqueOrganizations <- actordescription[,2]
+uniquePolicies <- issuedescription[,2]
 uniqueElements <- c(uniqueOrganizations, uniquePolicies)
 
 nodeEdgeFrom <- c( 
-  unlist(actoractorEdgelist[1], use.names=FALSE), 
-  unlist(actorissueEdgelist[1], use.names=FALSE),
-  gsub('\\s+', '', (unlist(issueissueEdgelist[1], use.names=FALSE)))
+  actoractorEdgelist[,1],
+  actorissueEdgelist[,1],
+  issueissueEdgelist[,1]
 )
 
 nodeEdgeTo <- c(
-  unlist(actoractorEdgelist[2], use.names=FALSE), 
-  unlist(actorissueEdgelist[2], use.names=FALSE),
-  gsub('\\s+', '', (unlist(issueissueEdgelist[2], use.names=FALSE)))
+  actoractorEdgelist[,2],
+  actorissueEdgelist[,2],
+  issueissueEdgelist[,2]
 )
-
-edgeLength = length(nodeEdgeFrom)
 
 # -Tab 1 Nodes/Edges-
 allNodes <- data.frame(
   id = uniqueElements, 
   label = uniqueElements, 
-  group = c(rep("Organization", (length(uniqueOrganizations))), rep("Issue", (length(uniquePolicies))))
+  group = c(
+    rep("Organization", length(uniqueOrganizations)), 
+    rep("Issue", length(uniquePolicies))
+  )
 )
 
 allEdges <- data.frame(
   from = nodeEdgeFrom, 
   to = nodeEdgeTo,
   color = c(
-    rep("gray", (length(unlist(actoractorEdgelist[1])))), 
-    rep("turquoise", (length(unlist(actorissueEdgelist[1])))),
-    rep("lightgreen", (length(unlist(issueissueEdgelist[1]))))
+    rep("gray", length(actoractorEdgelist[,1])), 
+    rep("turquoise", length(actorissueEdgelist[,1])),
+    rep("lightgreen", length(issueissueEdgelist[,1]))
   ),
   width = c(
-    rep(0.5, (length(unlist(actoractorEdgelist[1])))), 
-    rep(0.5, (length(unlist(actorissueEdgelist[1])))),
-    unlist(issueissueEdgelist[3], use.names=FALSE)[1:(length(unlist(issueissueEdgelist[1])))]
+    rep(0.5, length(actoractorEdgelist[,1])), 
+    rep(0.5, length(actorissueEdgelist[,1])),
+    issueissueEdgelist[,3][1:length(issueissueEdgelist[,3])]
   ),
   selectionwidth = c(
-    rep(0.5, (length(unlist(actoractorEdgelist[1])))), 
-    rep(0.5, (length(unlist(actorissueEdgelist[1])))),
-    unlist(issueissueEdgelist[3], use.names=FALSE)[1:(length(unlist(issueissueEdgelist[1])))]
+    rep(0.5, length(actoractorEdgelist[,1])), 
+    rep(0.5, length(actorissueEdgelist[,1])),
+    issueissueEdgelist[,3][1:length(issueissueEdgelist[,3])]
   ),
-  id = c(paste(nodeEdgeFrom, nodeEdgeTo, 1:edgeLength, sep="_"))
+  id = paste(nodeEdgeFrom, nodeEdgeTo, sep="-")
 )
 
 # -Media-
@@ -83,22 +83,21 @@ names(abbrevNames2) <- fullNames2
 ui <- dashboardPage(
   dashboardHeader(title = "Network of Stakeholders", titleWidth = 250),
   dashboardSidebar(
-    sidebarMenu(id = "sidebar", style = "position: fixed;",
-                
-      # Tabs List
+    
+    # Tabs List
+    sidebarMenu(id = "sidebar", style = "position: fixed; width: 225px;",
       menuItem("Home", tabName = "coverpage"),
       menuItem("Networks", tabName = "networkstab"),
       menuItem("Actor Profiles", tabName = "actorprofiletab")
     ),
     
     # Cover Page
-    conditionalPanel(style = "position:fixed; width:230px; margin-top:125px;",
-      condition = "input.sidebar == 'coverpage'"
+    conditionalPanel(style = "position:fixed; width:225px; margin-top:125px;", condition = "input.sidebar == 'coverpage'"
+      # <Placeholder Code>
     ),
     
     # Network Tab
-    conditionalPanel(style = "position:fixed; width:230px; margin-top:125px;",
-      condition = "input.sidebar == 'networkstab'",
+    conditionalPanel(style = "position:fixed; width:225px; margin-top:125px;", condition = "input.sidebar == 'networkstab'",
       selectInput("filter", "Select Organization or Issue:", c(("N/A"), abbrevNames), selected = "N/A"),
       checkboxInput("checkOrg", "Show Organizations"),
       checkboxInput("checkIss", "Show Issues"),
@@ -107,8 +106,7 @@ ui <- dashboardPage(
     ),
     
     # Actor Profile Tab
-    conditionalPanel(style = "position:fixed; width:230px; margin-top:125px;",
-     condition = "input.sidebar == 'actorprofiletab'",
+    conditionalPanel(style = "position:fixed; width:225px; margin-top:125px;", condition = "input.sidebar == 'actorprofiletab'",
       selectInput("filterClone", "Select Organization or Issue:", c(("N/A"), abbrevNames2), selected = "")
     )
   ),
